@@ -13,6 +13,10 @@ def tool_was_used(messages):
 
     return False
 
+print("=" * 35)
+print("     Multi-Tool AI Agent")
+print("=" * 35)
+
 while True:
     user_input = input("You: ")
 
