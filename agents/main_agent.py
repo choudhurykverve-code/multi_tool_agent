@@ -3,11 +3,13 @@ from langchain.agents import create_agent
 import tools.calculator_tool as calculator_tool_module
 import tools.wikipedia as wikipedia_module
 import tools.weather as weather_module
+import tools.web_search as web_search_module
 
 tools = [
     calculator_tool_module.calculator_tool,
     wikipedia_module.wikipedia_tool,
     weather_module.weather_tool,
+    web_search_module.web_search_tool
 ]
 
 agent = create_agent(
