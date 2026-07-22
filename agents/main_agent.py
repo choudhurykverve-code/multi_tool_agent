@@ -22,5 +22,8 @@ agent = create_agent(
     "Call tools one at a time with a single query only — never pass multiple queries "
     "or a list in one tool call. If you need multiple lookups, call the tool multiple times, "
     "once per query."
+    "For questions about recent events, current data, or anything time-sensitive, "
+    "always rely strictly on the web_search_tool results and do not use your own "
+    "prior knowledge, since your training data may be outdated."
     )
 )
