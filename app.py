@@ -1,17 +1,23 @@
 from agents.main_agent import agent
 from langchain_core.messages import HumanMessage
 
-def tool_was_used(messages):
+def get_used_tools(messages):
+    used_tools = []
+
     for message in messages:
         tool_calls = getattr(message, "tool_calls", None)
         if tool_calls:
-            return True
+            for call in tool_calls:
+                name = call.get("name", "unknown_tool")
+                used_tools.append(name)
 
         additional_kwargs = getattr(message, "additional_kwargs", {})
         if isinstance(additional_kwargs, dict) and additional_kwargs.get("tool_calls"):
-            return True
+            for call in additional_kwargs["tool_calls"]:
+                name = call.get("function", {}).get("name", "unknown_tool")
+                used_tools.append(name)
 
-    return False
+    return used_tools
 
 print("=" * 35)
 print("     Multi-Tool AI Agent")
@@ -25,10 +31,11 @@ while True:
     else:
         response = agent.invoke({"messages": [HumanMessage(content=user_input)]})
         messages = response.get("messages", [])
-        used_tool = tool_was_used(messages)
-
-        if used_tool:
-            print("[Tool used] calculator tool was invoked.")
+        used_tools = get_used_tools(messages)
+        used_tools = list(dict.fromkeys(used_tools)) 
+        
+        if used_tools:
+            print(f"[Tool used] {', '.join(used_tools)} was invoked.")
 
         if messages:
             print(f"AI: {messages[-1].content}")
