@@ -19,6 +19,23 @@ def get_used_tools(messages):
 
     return used_tools
 
+
+def get_ai_text(message):
+    content = message.content
+
+    if isinstance(content, str):
+        return content
+
+    if isinstance(content, list):
+        texts = []
+        for block in content:
+            if isinstance(block, dict) and block.get("type") == "text":
+                texts.append(block.get("text", ""))
+        return "\n".join(texts) if texts else str(content)
+
+    return str(content)
+
+
 print("=" * 35)
 print("     Multi-Tool AI Agent")
 print("=" * 35)
@@ -38,7 +55,6 @@ while True:
             print(f"[Tool used] {', '.join(used_tools)} was invoked.")
 
         if messages:
-            print(f"AI: {messages[-1].content}")
+            print(f"AI: {get_ai_text(messages[-1])}")
         else:
             print(f"AI: {response}")
-
