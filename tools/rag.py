@@ -69,12 +69,17 @@ def rag_tool(query: str) -> str:
         if vectorstore is None:
             return "Error: No PDF documents found. Please add PDFs to the documents folder."
 
-        results = vectorstore.similarity_search(query.strip(), k=3)
+        results = vectorstore.similarity_search(query.strip(), k=5)
 
         if not results:
             return "No relevant information found in the documents."
 
-        context = "\n\n".join([doc.page_content for doc in results])
+        context = "\n\n".join(
+            [
+                f"[Source: {os.path.basename(doc.metadata.get('source', 'unknown'))}]\n{doc.page_content}"
+                for doc in results
+            ]
+        )
         return f"Relevant information from documents:\n\n{context}"
 
     except FileNotFoundError:
@@ -82,6 +87,3 @@ def rag_tool(query: str) -> str:
 
     except Exception as e:
         return f"Error while searching documents: {e}"
-
-
-    
