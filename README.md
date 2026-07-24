@@ -31,24 +31,24 @@ Build an AI Agent that can understand a user's question and automatically route 
 
 ```
 multi_tool_agent/
-├── app.py                  # CLI entry point, conversation loop, error handling
-├── config.py                # LLM connection setup
-├── .env                     # API keys (not committed)
-├── .env.example              # Template for required environment variables
+├── app.py                  
+├── config.py                
+├── .env                     
+├── .env.example             
 ├── requirements.txt
 ├── README.md
 ├── agents/
-│   └── main_agent.py         # Builds the agent: LLM + tools + system prompt
+│   └── main_agent.py         
 ├── tools/
-│   ├── calculator.py          # Core arithmetic/percentage logic
-│   ├── calculator_tool.py      # LangChain tool wrapper for calculator
-│   ├── wikipedia.py            # Wikipedia search tool
-│   ├── weather.py               # Weather API tool
-│   ├── web_search.py             # Tavily web search tool
-│   └── rag.py                     # PDF loading, embedding, FAISS search tool
+│   ├── calculator.py          
+│   ├── calculator_tool.py      
+│   ├── wikipedia.py           
+│   ├── weather.py               
+│   ├── web_search.py             
+│   └── rag.py                     
 ├── vectorstore/
-│   └── faiss_index/                # Auto-generated FAISS index (not committed)
-├── documents/                        # Place PDF files here for RAG
+│   └── faiss_index/                
+├── documents/                        
 └── utils/
 ```
 
@@ -63,8 +63,8 @@ cd multi_tool_agent
 ### 2. Create and activate a virtual environment
 ```bash
 python -m venv venv
-venv\Scripts\activate      # Windows
-source venv/bin/activate   # macOS/Linux
+venv\Scripts\activate      
+source venv/bin/activate   
 ```
 
 ### 3. Install dependencies
@@ -75,8 +75,8 @@ pip install -r requirements.txt
 ### 4. Set up environment variables
 Copy `.env.example` to `.env` and fill in your API keys:
 ```bash
-copy .env.example .env      # Windows
-cp .env.example .env        # macOS/Linux
+copy .env.example .env      
+cp .env.example .env        
 ```
 
 Required keys:
@@ -139,11 +139,3 @@ The agent uses a single system prompt that describes when each tool should be us
 - Free-tier API limits apply (Groq token limits, OpenWeatherMap/Tavily rate limits) — the agent handles rate limit errors gracefully but cannot bypass provider quotas.
 - The interface is CLI-only in the current version; a Streamlit UI is an optional future addition.
 - Web search accuracy depends on the underlying model correctly prioritizing fresh search results over its own training knowledge; this is mitigated via explicit system prompt instructions but not 100% guaranteed.
-
-## Deliverables
-
-- Source code (this repository)
-- README.md (this file)
-- `.env.example`
-- Sample PDF (in `documents/`)
-- Demo screenshots/video (add separately when submitting)
