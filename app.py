@@ -1,5 +1,7 @@
 from agents.main_agent import agent
 from langchain_core.messages import HumanMessage
+import time
+
 
 def get_used_tools(messages):
     used_tools = []
@@ -36,25 +38,60 @@ def get_ai_text(message):
     return str(content)
 
 
+def safe_invoke(agent, messages, retries=2):
+    for attempt in range(retries + 1):
+        try:
+            return agent.invoke({"messages": messages})
+        except Exception as e:
+            error_text = str(e)
+
+            if "rate_limit" in error_text.lower() or "429" in error_text:
+                return {"messages": [], "error": "Rate limit reached. Please wait a few minutes and try again."}
+
+            if attempt < retries:
+                print(f"[Retrying... attempt {attempt + 1}]")
+                time.sleep(2)
+                continue
+
+            return {"messages": [], "error": f"Something went wrong: {error_text}"}
+
+    return {"messages": [], "error": "Unknown error occurred."}
+
+
 print("=" * 35)
 print("     Multi-Tool AI Agent")
 print("=" * 35)
+
+conversation_history = []
 
 while True:
     user_input = input("You: ")
 
     if user_input.lower() in ["exit", "quit", "bye"]:
         break
-    else:
-        response = agent.invoke({"messages": [HumanMessage(content=user_input)]})
-        messages = response.get("messages", [])
-        used_tools = get_used_tools(messages)
-        used_tools = list(dict.fromkeys(used_tools)) 
-        
-        if used_tools:
-            print(f"[Tool used] {', '.join(used_tools)} was invoked.")
 
-        if messages:
-            print(f"AI: {get_ai_text(messages[-1])}")
-        else:
-            print(f"AI: {response}")
+    if not user_input.strip():
+        print("AI: Please enter a valid question.")
+        continue
+
+    conversation_history.append(HumanMessage(content=user_input))
+
+    response = safe_invoke(agent, conversation_history)
+
+    if "error" in response:
+        print(f"AI: {response['error']}")
+        continue
+
+    messages = response.get("messages", [])
+    conversation_history = messages
+
+    used_tools = get_used_tools(messages)
+    used_tools = list(dict.fromkeys(used_tools))
+
+    if used_tools:
+        print(f"[Tool used] {', '.join(used_tools)} was invoked.")
+
+    if messages:
+        print(f"AI: {get_ai_text(messages[-1])}")
+    else:
+        print(f"AI: {response}")
