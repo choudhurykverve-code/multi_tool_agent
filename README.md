@@ -47,9 +47,8 @@ multi_tool_agent/
 │   ├── web_search.py             
 │   └── rag.py                     
 ├── vectorstore/
-│   └── faiss_index/                
-├── documents/                        
-└── utils/
+│   └── faiss_index/                                        
+└── documents/
 ```
 
 ## Setup
