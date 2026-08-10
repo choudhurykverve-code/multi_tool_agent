@@ -82,23 +82,36 @@ def evaluate(node):
 
     raise ValueError(f"Unsupported expression: {type(node).__name__}")
 
-
+def _validate_number(value, name: str):
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise ValueError(f"{name} must be a number")
 
 def percentage_of(percent: float, number: float) -> float:
-    return (percent/100)*number
+    _validate_number(percent, "Percent")
+    _validate_number(number, "Number")
+
+    return (percent / 100) * number
+
 
 def increase_percentage(number: float, percent: float) -> float:
+    _validate_number(number, "Number")
+    _validate_number(percent, "Percent")
+
     return number + percentage_of(percent, number)
 
+
 def decrease_percentage(number: float, percent: float) -> float:
+    _validate_number(number, "Number")
+    _validate_number(percent, "Percent")
+
     return number - percentage_of(percent, number)
 
+
 def find_percentage(part: float, whole: float) -> float:
+    _validate_number(part, "Part")
+    _validate_number(whole, "Whole")
+
     if whole == 0:
         raise ValueError("Whole cannot be zero")
-    return (part/whole)*100
 
-
-
-
-
+    return (part / whole) * 100

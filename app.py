@@ -42,20 +42,52 @@ def safe_invoke(agent, messages, retries=2):
     for attempt in range(retries + 1):
         try:
             return agent.invoke({"messages": messages})
+
         except Exception as e:
             error_text = str(e)
+            error_lower = error_text.lower()
 
-            if "rate_limit" in error_text.lower() or "429" in error_text:
-                return {"messages": [], "error": "Rate limit reached. Please wait a few minutes and try again."}
+            if "rate_limit" in error_lower or "429" in error_text:
+                return {
+                    "messages": [],
+                    "error": (
+                        "Rate limit reached. "
+                        "Please wait a few minutes and try again."
+                    )
+                }
 
-            if attempt < retries:
+            retryable_errors = [
+                "timeout",
+                "timed out",
+                "connection error",
+                "connection reset",
+                "500",
+                "502",
+                "503",
+                "504",
+                "service unavailable",
+                "temporarily unavailable",
+            ]
+
+            is_retryable = any(
+                error in error_lower
+                for error in retryable_errors
+            )
+
+            if is_retryable and attempt < retries:
                 print(f"[Retrying... attempt {attempt + 1}]")
                 time.sleep(2)
                 continue
 
-            return {"messages": [], "error": f"Something went wrong: {error_text}"}
+            return {
+                "messages": [],
+                "error": f"Something went wrong: {error_text}"
+            }
 
-    return {"messages": [], "error": "Unknown error occurred."}
+    return {
+        "messages": [],
+        "error": "Unknown error occurred."
+    }
 
 
 print("=" * 35)

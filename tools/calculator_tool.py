@@ -42,13 +42,13 @@ def calculator_tool(
     - "find_percentage": value1 = part, value2 = whole
     """
 
+    if operation == "arithmetic":
+        return arithmetic_calculator(str(value1))
+    
     value1 = _coerce_number(value1)
     value2 = _coerce_number(value2) if value2 is not None else None
 
-    if operation == "arithmetic":
-        return arithmetic_calculator(str(value1))
-
-    elif operation == "percentage_of":
+    if operation == "percentage_of":
         if value2 is None:
             return "Error: Second value is required."
         return percentage_of(value1, value2)

@@ -39,10 +39,10 @@ def weather_tool(city:str)->str:
         desription = data['weather'][0]["description"]
         humidity = data['main']['humidity']
 
-        return {
+        return (
             f"Weather in {city.title()}: {desription}",
             f"{temp}°C, humidity {humidity}%"
-        }
+        )
 
     except requests.exceptions.Timeout:
         return "Weather server time out. Please try again."

@@ -21,7 +21,7 @@ def web_search_tool(query: str) -> str:
         return "Error: Web search api key not configured."
 
     try:
-        search=TavilySearch(max_result=3)
+        search=TavilySearch(max_results=3)
         result=search.invoke(query.strip())
         return str(result)
     except Exception as e:

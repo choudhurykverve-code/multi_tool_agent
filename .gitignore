@@ -1,17 +1,7 @@
-# Python cache
 __pycache__/
 *.pyc
-
-# Environment
 .env
 venv/
 .venv/
-
-# VS Code
 .vscode/
-
-# RAG documents
-documents/
-
-# RAG vector database
 vectorstore/faiss_index/

@@ -51,6 +51,23 @@ multi_tool_agent/
 └── documents/
 ```
 
+### RAG Local Data
+
+The following directories are used locally and are intentionally
+excluded from Git:
+
+``` text
+documents/
+vectorstore/faiss_index/
+```
+
+Place your PDF documents inside `documents/`. The FAISS vector store is
+generated automatically when the RAG tool is first used.
+
+The repository does not contain uploaded documents or generated FAISS
+vector-store data. Users must provide their own PDF documents locally.
+
+
 ## Setup
 
 ### 1. Clone the repository
@@ -138,3 +155,15 @@ The agent uses a single system prompt that describes when each tool should be us
 - Free-tier API limits apply (Groq token limits, OpenWeatherMap/Tavily rate limits) — the agent handles rate limit errors gracefully but cannot bypass provider quotas.
 - The interface is CLI-only in the current version; a Streamlit UI is an optional future addition.
 - Web search accuracy depends on the underlying model correctly prioritizing fresh search results over its own training knowledge; this is mitigated via explicit system prompt instructions but not 100% guaranteed.
+
+## RAG Data and Privacy
+
+PDF documents and generated FAISS indexes are stored locally and are
+excluded from Git using `.gitignore`.
+
+The repository does not contain uploaded documents or generated
+vector-store data. Use sample or non-sensitive documents when testing
+the RAG feature.
+
+This separation prevents potentially sensitive document content from
+being committed to the public repository.
