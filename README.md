@@ -178,13 +178,62 @@ Example response:
 
 The API automatically manages a session cookie named `agent_session_id`, so the user does not need to pass a session ID manually. Conversation history is stored in memory for the same browser session.
 
+### PDF upload endpoint
+
+```http
+POST /chat/upload-pdf
+```
+
+Request format: multipart form-data with the uploaded file in a field named `file`.
+
+Example:
+
+```bash
+curl -X POST "http://127.0.0.1:8000/chat/upload-pdf" \
+  -F "file=@sample.pdf"
+```
+
+The uploaded PDF is saved under `documents/` and is automatically treated as available RAG content for future queries.
+
 ## RAG / Document Support
 
-Place PDFs in the `documents/` folder to enable document-based queries.
+Users can upload PDFs directly through the API and the app will save them into the `documents/` folder for retrieval.
 
-- The app uses a FAISS vector store
-- The index is stored under `vectorstore/faiss_index/`
-- The agent can answer questions based on document content after indexing
+- PDF uploads are accepted through the API upload route
+- Uploaded files are saved locally in `documents/`
+- The app rebuilds the FAISS index after a new PDF is uploaded
+- The agent can then answer questions based on the uploaded document content
+
+### Upload PDF endpoint
+
+```http
+POST /chat/upload-pdf
+```
+
+Use form-data with a file field named `file`:
+
+```bash
+curl -X POST "http://127.0.0.1:8000/chat/upload-pdf" \
+  -F "file=@your_file.pdf"
+```
+
+Example response:
+
+```json
+{
+  "message": "PDF uploaded successfully.",
+  "filename": "your_file.pdf",
+  "saved_to": "documents/your_file.pdf"
+}
+```
+
+After upload, ask the agent questions such as:
+
+```json
+{
+  "message": "Summarize the uploaded document"
+}
+```
 
 ## Tool Routing Behavior
 

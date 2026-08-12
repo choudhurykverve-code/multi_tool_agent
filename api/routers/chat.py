@@ -1,10 +1,12 @@
 import uuid
+from pathlib import Path
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, File, HTTPException, Request, UploadFile
 from fastapi.responses import JSONResponse
 
 from api.schemas.chat import ChatRequest, ChatResponse
 from api.services.chat_service import chat_with_agent
+from tools.rag import reset_vectorstore_cache
 
 router = APIRouter(
     prefix="/chat",
@@ -40,3 +42,35 @@ def chat(request: Request, payload: ChatRequest):
             status_code=500,
             detail=str(exc)
         )
+
+
+@router.post('/upload-pdf')
+async def upload_pdf(file: UploadFile = File(...)):
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No file selected.")
+
+    if not file.filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Only PDF files are allowed.")
+
+    documents_dir = Path("documents")
+    documents_dir.mkdir(exist_ok=True)
+
+    file_path = documents_dir / file.filename
+    counter = 1
+    while file_path.exists():
+        stem = Path(file.filename).stem
+        suffix = Path(file.filename).suffix
+        file_path = documents_dir / f"{stem}_{counter}{suffix}"
+        counter += 1
+
+    contents = await file.read()
+    with file_path.open("wb") as target:
+        target.write(contents)
+
+    reset_vectorstore_cache()
+
+    return {
+        "message": "PDF uploaded successfully.",
+        "filename": file_path.name,
+        "saved_to": str(file_path)
+    }

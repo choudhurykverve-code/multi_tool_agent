@@ -1,4 +1,5 @@
 import os
+import shutil
 
 from dotenv import load_dotenv
 from langchain.tools import tool
@@ -13,6 +14,14 @@ DOCUMENTS_DIR = "documents"
 VECTORSTORE_DIR = "vectorstore/faiss_index"
 
 _vectorstore = None
+
+
+def reset_vectorstore_cache():
+    global _vectorstore
+    _vectorstore = None
+
+    if os.path.exists(VECTORSTORE_DIR):
+        shutil.rmtree(VECTORSTORE_DIR)
 
 
 def get_embeddings():
