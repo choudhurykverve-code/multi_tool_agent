@@ -1,54 +1,51 @@
-# Multi Tool Agent with API and FastAPI
+# Multi Tool Agent
 
-A multi-tool AI assistant built with Python, LangChain, and FastAPI. It can answer questions by routing requests to specialized tools such as a calculator, Wikipedia search, weather lookup, web search, and document-based RAG over local PDFs.
-
-The project includes both:
-
-- a terminal chat interface in `app.py`
-- a REST API built with FastAPI in `api/`
+A multi-tool AI assistant built with Python, LangChain, and FastAPI. The project can answer questions by choosing the correct specialized tool automatically, and it supports follow-up conversations using session-based memory.
 
 ## Overview
 
-This project is designed to behave like an intelligent agent that decides which tool best matches a user request. For example:
+This project combines:
 
-- arithmetic questions → calculator tool
-- general knowledge questions → Wikipedia tool
-- weather questions → weather tool
-- current events / fresh information → web search tool
-- content-based questions from uploaded PDFs → RAG tool
+- a LangChain agent with multiple tools
+- a FastAPI API for integration with frontend apps or other services
+- conversation memory so follow-up questions can use previous context in the same session
 
-The main agent is configured in `agents/main_agent.py` and uses a Groq LLM to decide when to call a tool.
+The system routes prompts to the most suitable tool, such as:
+
+- calculator for arithmetic or percentage questions
+- Wikipedia for factual or encyclopedic knowledge
+- weather tool for current weather conditions
+- web search for time-sensitive or recent information
+- RAG for questions based on uploaded PDF documents
 
 ## Features
 
-- Calculator for arithmetic and percentage operations
-- Wikipedia lookup for factual and encyclopedic questions
-- OpenWeatherMap integration for local weather queries
-- Tavily-powered web search for real-time and time-sensitive information
-- RAG over PDF documents using FAISS + embeddings
-- FastAPI-based chat endpoint for integration into web apps or frontends
-- CORS enabled for browser-based clients
-- CLI chat experience for local testing and demos
+- Math and percentage calculation support
+- Wikipedia knowledge lookup
+- Weather lookup using OpenWeatherMap
+- Web search using Tavily
+- RAG over local PDFs using FAISS + embeddings
+- FastAPI chat endpoint with CORS support
+- In-memory session conversation history
 
 ## Tech Stack
 
 - Python 3.11+
 - LangChain
-- LangGraph agent tooling
 - FastAPI
 - Pydantic
 - Groq LLM
-- Google Generative AI for embeddings
-- FAISS for vector search
-- Tavily for web search
-- OpenWeatherMap for weather data
-- Wikipedia API and document parsing via Python libraries
+- Google Generative AI
+- FAISS
+- Tavily
+- OpenWeatherMap
+- Wikipedia
 
 ## Project Structure
 
 ```text
 multi_tool_agent/
-├── app.py
+├── main.py
 ├── config.py
 ├── requirements.txt
 ├── README.md
@@ -77,18 +74,20 @@ multi_tool_agent/
 ├── documents/
 ├── vectorstore/
 │   └── faiss_index/
-└── .gitignore
+├── .gitignore
+└── venv/
 ```
 
 ## Prerequisites
 
-Before running the project, make sure you have:
+Make sure you have:
 
-- Python 3.11 or newer
+- Python 3.11 or higher
 - pip installed
-- API keys for the services you want to use
+- a virtual environment
+- valid API keys for the connected services
 
-## Environment Setup
+## Setup
 
 1. Clone the repository:
 
@@ -99,19 +98,17 @@ cd multi_tool_agent
 
 2. Create and activate a virtual environment:
 
+Windows:
+
 ```bash
 python -m venv venv
-```
-
-On Windows:
-
-```bash
 venv\Scripts\activate
 ```
 
-On macOS/Linux:
+macOS/Linux:
 
 ```bash
+python -m venv venv
 source venv/bin/activate
 ```
 
@@ -121,95 +118,54 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-4. Create a `.env` file from the example:
+4. Add environment variables in a `.env` file:
 
 ```bash
 copy .env.example .env
 ```
 
-or on macOS/Linux:
+or:
 
 ```bash
 cp .env.example .env
 ```
 
-5. Fill in the required keys in `.env`:
+Example:
 
 ```env
 GROQ_API_KEY=your_groq_key
-OPENWEATHER_API_KEY=your_weather_key
+OPENWEATHER_API_KEY=your_openweather_key
 TAVILY_API_KEY=your_tavily_key
 GOOGLE_API_KEY=your_google_key
 ```
 
-You can get keys from:
-
-- Groq: https://console.groq.com
-- OpenWeatherMap: https://openweathermap.org/api
-- Tavily: https://tavily.com
-- Google AI Studio: https://aistudio.google.com
-
-## Running the CLI Agent
-
-Start the interactive terminal app:
-
-```bash
-python app.py
-```
-
-Example:
-
-```text
-You: What is 15% of 240?
-AI: 36.0
-
-You: What is the weather in Mumbai?
-AI: The current weather in Mumbai is light rain and 27.5°C.
-
-You: Who is Marie Curie?
-AI: Marie Curie was a physicist and chemist known for her pioneering research on radioactivity.
-```
-
-Type `exit`, `quit`, or `bye` to end the session.
-
 ## Running the FastAPI Server
 
-Start the API from the project root:
+Start the API:
 
 ```bash
-uvicorn api.main:app --reload
+uvicorn main:app --reload
 ```
 
-The server will run at:
+Then open:
 
 - http://127.0.0.1:8000
-- Swagger UI: http://127.0.0.1:8000/docs
-- ReDoc: http://127.0.0.1:8000/redoc
+- http://127.0.0.1:8000/docs
 
 ## API Usage
 
 ### Chat endpoint
 
-Endpoint:
-
 ```http
 POST /chat/
 ```
 
-Request body:
+Example request:
 
 ```json
 {
   "message": "What is the weather in London?"
 }
-```
-
-Example with curl:
-
-```bash
-curl -X POST "http://127.0.0.1:8000/chat/" \
-  -H "Content-Type: application/json" \
-  -d '{"message":"What is the weather in London?"}'
 ```
 
 Example response:
@@ -220,69 +176,62 @@ Example response:
 }
 ```
 
-## RAG and Document Support
+The API automatically manages a session cookie named `agent_session_id`, so the user does not need to pass a session ID manually. Conversation history is stored in memory for the same browser session.
 
-The RAG tool can answer questions based on PDF files placed in the `documents/` directory.
+## RAG / Document Support
 
-Steps:
+Place PDFs in the `documents/` folder to enable document-based queries.
 
-1. Add your PDF files into `documents/`
-2. Run a question through the agent or API that references the document
-3. The system builds or updates the FAISS vector index automatically
+- The app uses a FAISS vector store
+- The index is stored under `vectorstore/faiss_index/`
+- The agent can answer questions based on document content after indexing
 
-Notes:
+## Tool Routing Behavior
 
-- The vector store is saved in `vectorstore/faiss_index/`
-- Rebuilding the index may be needed if you add new PDFs
-- PDFs with scanned images may not work properly unless OCR support is added
+The agent decides which tool to use based on the request type:
 
-## Tool Behavior
+- arithmetic / percentage → calculator
+- general knowledge → Wikipedia
+- weather conditions → weather tool
+- recent or current events → web search
+- document content questions → RAG
 
-The agent is instructed to route user requests to the correct tool based on the request type:
+## Conversation Memory
 
-- calculator → arithmetic, percentages, math operations
-- Wikipedia → general factual information
-- weather → current or forecast weather for a city
-- web search → news, current events, recent facts
-- RAG → uploaded document questions and summarization
+The project includes in-memory conversation history for follow-up prompts.
 
-## Error Handling
+Example:
 
-The system includes safeguards for:
+1. “What is the weather in London?”
+2. “And tomorrow?”
 
-- missing or empty messages
-- API rate limiting
-- network failures
-- invalid input
-- missing document indexes
-- empty or unsupported queries
-
-## Notes
-
-- The repository uses local environment variables stored in `.env`
-- Sensitive API keys should never be committed to version control
-- The project is intended for learning, demos, and custom AI workflows
+The second question can use the context of the first one without needing the user to pass a session ID explicitly.
 
 ## Troubleshooting
 
-### FastAPI server won't start
-
-Check that dependencies are installed and that the virtual environment is active:
+### Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### Agent returns errors
+### App fails to start
 
-Confirm that your `.env` file contains valid API keys and that the selected service has available quota.
+- confirm the virtual environment is active
+- ensure the `.env` file contains valid keys
+- check that dependencies were installed successfully
 
-### RAG does not work
+### Empty or failing responses
 
-- verify that the PDF file exists in `documents/`
-- make sure the file is readable and text-based
-- remove the FAISS folder if you want to rebuild the index
+- verify Groq/Tavily/OpenWeatherMap/Google keys are valid
+- ensure the service quota is not exhausted
+- confirm the document directory contains readable PDF files for RAG
+
+## Notes
+
+- Session memory is currently in-memory only and resets when the server restarts.
+- The project is intended for local demo, learning, and API integration use.
 
 ## License
 
-This project does not currently define a license file. If you plan to use it publicly, add a license before distribution.
+This project does not currently include a license file. If you plan to publish it publicly, add one before distribution.
