@@ -1,169 +1,288 @@
-# Multi-Tool AI Agent (LangChain)
+# Multi Tool Agent with API and FastAPI
 
-An intelligent AI agent built with LangChain that automatically selects the correct tool based on the user's query, from a single CLI chat interface.
+A multi-tool AI assistant built with Python, LangChain, and FastAPI. It can answer questions by routing requests to specialized tools such as a calculator, Wikipedia search, weather lookup, web search, and document-based RAG over local PDFs.
 
-## Objective
+The project includes both:
 
-Build an AI Agent that can understand a user's question and automatically route it to the right tool — calculator, Wikipedia, weather, web search, or a document knowledge base (RAG) — without the user needing to specify which tool to use.
+- a terminal chat interface in `app.py`
+- a REST API built with FastAPI in `api/`
+
+## Overview
+
+This project is designed to behave like an intelligent agent that decides which tool best matches a user request. For example:
+
+- arithmetic questions → calculator tool
+- general knowledge questions → Wikipedia tool
+- weather questions → weather tool
+- current events / fresh information → web search tool
+- content-based questions from uploaded PDFs → RAG tool
+
+The main agent is configured in `agents/main_agent.py` and uses a Groq LLM to decide when to call a tool.
 
 ## Features
 
-- **Calculator** — arithmetic expressions and percentage calculations (safe AST-based evaluation, no `eval()`)
-- **Wikipedia Search** — retrieves and summarizes factual/encyclopedic information
-- **Weather** — fetches current weather conditions for any city (OpenWeatherMap API)
-- **Web Search** — searches the web for recent events and time-sensitive information (Tavily API)
-- **RAG (Document Search)** — answers questions from PDFs placed in the `documents/` folder, using FAISS + Gemini embeddings
-- **Memory** — maintains conversation history so follow-up questions understand prior context
-- **Error Handling** — gracefully handles API failures, rate limits, invalid input, and missing documents without crashing
+- Calculator for arithmetic and percentage operations
+- Wikipedia lookup for factual and encyclopedic questions
+- OpenWeatherMap integration for local weather queries
+- Tavily-powered web search for real-time and time-sensitive information
+- RAG over PDF documents using FAISS + embeddings
+- FastAPI-based chat endpoint for integration into web apps or frontends
+- CORS enabled for browser-based clients
+- CLI chat experience for local testing and demos
 
 ## Tech Stack
 
 - Python 3.11+
-- LangChain / LangGraph (`create_agent`)
-- Groq (`llama-3.3-70b-versatile`) as the primary LLM
-- Google Gemini (`models/gemini-embedding-001`) for embeddings
-- FAISS for vector storage
+- LangChain
+- LangGraph agent tooling
+- FastAPI
+- Pydantic
+- Groq LLM
+- Google Generative AI for embeddings
+- FAISS for vector search
 - Tavily for web search
 - OpenWeatherMap for weather data
-- CLI as the primary interface
+- Wikipedia API and document parsing via Python libraries
 
 ## Project Structure
 
-```
+```text
 multi_tool_agent/
-├── app.py                  
-├── config.py                
-├── .env                     
-├── .env.example             
+├── app.py
+├── config.py
 ├── requirements.txt
 ├── README.md
+├── .env
+├── .env.example
 ├── agents/
-│   └── main_agent.py         
+│   └── main_agent.py
+├── api/
+│   ├── __init__.py
+│   ├── main.py
+│   ├── routers/
+│   │   └── chat.py
+│   ├── schemas/
+│   │   ├── __init__.py
+│   │   └── chat.py
+│   └── services/
+│       └── chat_service.py
 ├── tools/
-│   ├── calculator.py          
-│   ├── calculator_tool.py      
-│   ├── wikipedia.py           
-│   ├── weather.py               
-│   ├── web_search.py             
-│   └── rag.py                     
+│   ├── __init__.py
+│   ├── calculator.py
+│   ├── calculator_tool.py
+│   ├── weather.py
+│   ├── web_search.py
+│   ├── wikipedia.py
+│   └── rag.py
+├── documents/
 ├── vectorstore/
-│   └── faiss_index/                                        
-└── documents/
+│   └── faiss_index/
+└── .gitignore
 ```
 
-### RAG Local Data
+## Prerequisites
 
-The following directories are used locally and are intentionally
-excluded from Git:
+Before running the project, make sure you have:
 
-``` text
-documents/
-vectorstore/faiss_index/
-```
+- Python 3.11 or newer
+- pip installed
+- API keys for the services you want to use
 
-Place your PDF documents inside `documents/`. The FAISS vector store is
-generated automatically when the RAG tool is first used.
+## Environment Setup
 
-The repository does not contain uploaded documents or generated FAISS
-vector-store data. Users must provide their own PDF documents locally.
+1. Clone the repository:
 
-
-## Setup
-
-### 1. Clone the repository
 ```bash
 git clone <your-repo-url>
 cd multi_tool_agent
 ```
 
-### 2. Create and activate a virtual environment
+2. Create and activate a virtual environment:
+
 ```bash
 python -m venv venv
-venv\Scripts\activate      
-source venv/bin/activate   
 ```
 
-### 3. Install dependencies
+On Windows:
+
+```bash
+venv\Scripts\activate
+```
+
+On macOS/Linux:
+
+```bash
+source venv/bin/activate
+```
+
+3. Install dependencies:
+
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Set up environment variables
-Copy `.env.example` to `.env` and fill in your API keys:
+4. Create a `.env` file from the example:
+
 ```bash
-copy .env.example .env      
-cp .env.example .env        
+copy .env.example .env
 ```
 
-Required keys:
+or on macOS/Linux:
+
+```bash
+cp .env.example .env
 ```
-GROQ_API_KEY=
-OPENWEATHER_API_KEY=
-TAVILY_API_KEY=
-GOOGLE_API_KEY=
+
+5. Fill in the required keys in `.env`:
+
+```env
+GROQ_API_KEY=your_groq_key
+OPENWEATHER_API_KEY=your_weather_key
+TAVILY_API_KEY=your_tavily_key
+GOOGLE_API_KEY=your_google_key
 ```
+
+You can get keys from:
 
 - Groq: https://console.groq.com
 - OpenWeatherMap: https://openweathermap.org/api
 - Tavily: https://tavily.com
-- Google AI Studio (Gemini): https://aistudio.google.com
+- Google AI Studio: https://aistudio.google.com
 
-### 5. Add a sample PDF for RAG (optional)
-Place any `.pdf` file into the `documents/` folder. The vector index will be built automatically the first time a document-related question is asked.
+## Running the CLI Agent
 
-### 6. Run the agent
+Start the interactive terminal app:
+
 ```bash
 python app.py
 ```
 
-## Usage Examples
+Example:
 
-```
-You: what is 15% of 240
+```text
+You: What is 15% of 240?
 AI: 36.0
 
-You: who is Marie Curie
-AI: Marie Curie was a physicist and chemist known for her research on radioactivity...
+You: What is the weather in Mumbai?
+AI: The current weather in Mumbai is light rain and 27.5°C.
 
-You: what is the weather in Mumbai
-AI: The current weather in Mumbai is light rain with a temperature of 27.5°C...
-
-You: what is the latest news on the champions league final
-AI: [uses web search for current information]
-
-You: what is the objective of the project according to the document
-AI: [answers using content from the uploaded PDF]
+You: Who is Marie Curie?
+AI: Marie Curie was a physicist and chemist known for her pioneering research on radioactivity.
 ```
 
 Type `exit`, `quit`, or `bye` to end the session.
 
-## How Tool Selection Works
+## Running the FastAPI Server
 
-The agent uses a single system prompt that describes when each tool should be used (arithmetic → calculator, factual/encyclopedic → Wikipedia, current weather → weather tool, recent/time-sensitive info → web search, document-specific questions → RAG). The underlying LLM decides which tool (if any) to call based on the user's phrasing, and can call multiple tools across a conversation as needed.
+Start the API from the project root:
+
+```bash
+uvicorn api.main:app --reload
+```
+
+The server will run at:
+
+- http://127.0.0.1:8000
+- Swagger UI: http://127.0.0.1:8000/docs
+- ReDoc: http://127.0.0.1:8000/redoc
+
+## API Usage
+
+### Chat endpoint
+
+Endpoint:
+
+```http
+POST /chat/
+```
+
+Request body:
+
+```json
+{
+  "message": "What is the weather in London?"
+}
+```
+
+Example with curl:
+
+```bash
+curl -X POST "http://127.0.0.1:8000/chat/" \
+  -H "Content-Type: application/json" \
+  -d '{"message":"What is the weather in London?"}'
+```
+
+Example response:
+
+```json
+{
+  "response": "The weather in London is currently cloudy with a temperature of 18°C."
+}
+```
+
+## RAG and Document Support
+
+The RAG tool can answer questions based on PDF files placed in the `documents/` directory.
+
+Steps:
+
+1. Add your PDF files into `documents/`
+2. Run a question through the agent or API that references the document
+3. The system builds or updates the FAISS vector index automatically
+
+Notes:
+
+- The vector store is saved in `vectorstore/faiss_index/`
+- Rebuilding the index may be needed if you add new PDFs
+- PDFs with scanned images may not work properly unless OCR support is added
+
+## Tool Behavior
+
+The agent is instructed to route user requests to the correct tool based on the request type:
+
+- calculator → arithmetic, percentages, math operations
+- Wikipedia → general factual information
+- weather → current or forecast weather for a city
+- web search → news, current events, recent facts
+- RAG → uploaded document questions and summarization
 
 ## Error Handling
 
-- API/network failures (Groq rate limits, timeouts) are caught and shown as friendly messages instead of crashing the CLI, with limited automatic retries for transient failures.
-- Invalid or empty user input is rejected with a clear message before being sent to the model.
-- Missing or empty `documents/` folder is detected by the RAG tool, which returns a clear error instead of failing silently.
-- Invalid city names, empty queries, and malformed tool arguments are handled within each individual tool.
+The system includes safeguards for:
 
-## Assumptions & Known Limitations
+- missing or empty messages
+- API rate limiting
+- network failures
+- invalid input
+- missing document indexes
+- empty or unsupported queries
 
-- The RAG tool only supports PDFs with an actual text layer. Scanned/image-based PDFs (e.g., certificates that are essentially images) are not supported, since no OCR step is implemented.
-- The FAISS index is built once from all PDFs present in `documents/` at first use, and cached to `vectorstore/faiss_index/`. Adding new PDFs later requires deleting `vectorstore/faiss_index/` to force a rebuild.
-- Free-tier API limits apply (Groq token limits, OpenWeatherMap/Tavily rate limits) — the agent handles rate limit errors gracefully but cannot bypass provider quotas.
-- The interface is CLI-only in the current version; a Streamlit UI is an optional future addition.
-- Web search accuracy depends on the underlying model correctly prioritizing fresh search results over its own training knowledge; this is mitigated via explicit system prompt instructions but not 100% guaranteed.
+## Notes
 
-## RAG Data and Privacy
+- The repository uses local environment variables stored in `.env`
+- Sensitive API keys should never be committed to version control
+- The project is intended for learning, demos, and custom AI workflows
 
-PDF documents and generated FAISS indexes are stored locally and are
-excluded from Git using `.gitignore`.
+## Troubleshooting
 
-The repository does not contain uploaded documents or generated
-vector-store data. Use sample or non-sensitive documents when testing
-the RAG feature.
+### FastAPI server won't start
 
-This separation prevents potentially sensitive document content from
-being committed to the public repository.
+Check that dependencies are installed and that the virtual environment is active:
+
+```bash
+pip install -r requirements.txt
+```
+
+### Agent returns errors
+
+Confirm that your `.env` file contains valid API keys and that the selected service has available quota.
+
+### RAG does not work
+
+- verify that the PDF file exists in `documents/`
+- make sure the file is readable and text-based
+- remove the FAISS folder if you want to rebuild the index
+
+## License
+
+This project does not currently define a license file. If you plan to use it publicly, add a license before distribution.
